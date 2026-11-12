@@ -1,0 +1,68 @@
+:root {
+  --bg: #14161c;
+  --text: #e8eaf0;
+  --muted: #9aa0ad;
+  /* Distance between the canvas edge and the play-field rectangle.
+     Kept in sync with FIELD_INSET in src/config/visual.ts so HTML overlays line up. */
+  --field-inset: 16px;
+  --max-width: 960px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior: none;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, var(--max-width));
+  height: 100dvh;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.field-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0; /* allow flex child to shrink below canvas size */
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  /* Taps are game input: no scrolling, pinch-zoom or double-tap zoom. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stage canvas {
+  display: block;
+}
+
+.hud {
+  position: absolute;
+  top: var(--field-inset);
+  left: var(--field-inset);
+  z-index: 1;
+  pointer-events: none; /* never steal taps from the canvas */
+}
+
+.controls {
+  flex: 0 0 auto;
+  min-height: 72px;
+}
