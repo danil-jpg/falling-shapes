@@ -1,16 +1,25 @@
 import {Graphics} from 'pixi.js';
 import type {ShapeModel} from '../model/entities/ShapeModel';
 
+export type ShapeTapHandler = (model: ShapeModel) => void;
+
 /**
  * Display object for one ShapeModel. Draws the geometry once when bound,
  * then only copies the position each frame.
  *
- * `bind`/`unbind` are separate from construction so step 4 can reuse
- * instances from an object pool instead of allocating a new Graphics per shape.
+ * Instances are pooled: `bind`/`unbind` switch the model, so one Graphics
+ * can show a triangle now and a star later. The tap listener is attached
+ * once in the constructor, not on every bind, so reuse adds no listeners.
  */
 export class ShapeView {
     readonly graphics = new Graphics();
     private model: ShapeModel | null = null;
+
+    constructor(private readonly onTap: ShapeTapHandler) {
+        this.graphics.eventMode = 'static';
+        this.graphics.cursor = 'pointer';
+        this.graphics.on('pointerdown', this.handlePointerDown);
+    }
 
     bind(model: ShapeModel): void {
         this.model = model;
@@ -23,6 +32,8 @@ export class ShapeView {
 
     unbind(): void {
         this.model = null;
+        this.graphics.clear();
+        this.graphics.hitArea = null;
         this.graphics.visible = false;
     }
 
@@ -34,6 +45,11 @@ export class ShapeView {
 
     destroy(): void {
         this.model = null;
+        this.graphics.off('pointerdown', this.handlePointerDown);
         this.graphics.destroy();
     }
+
+    private readonly handlePointerDown = (): void => {
+        if (this.model) this.onTap(this.model);
+    };
 }

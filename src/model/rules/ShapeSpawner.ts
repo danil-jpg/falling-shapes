@@ -31,6 +31,14 @@ export class ShapeSpawner {
         }
     }
 
+    /** Shape centred on a given point (e.g. where the user tapped). */
+    createAt(x: number, y: number): ShapeModel {
+        const shape = this.factory.createRandom();
+        shape.x = x;
+        shape.y = y;
+        return shape;
+    }
+
     /** Random x where the whole shape fits horizontally; y so its bottom edge touches the field top. */
     private createAboveField(fieldWidth: number): ShapeModel {
         const shape = this.factory.createRandom();

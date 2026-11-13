@@ -65,6 +65,11 @@ export class GameModel {
     /** Bound once so the spawner callback allocates nothing per frame. */
     private readonly addShape = (shape: ShapeModel): void => this.add(shape);
 
+    /** Spawn a new shape centred at (x, y) in field coordinates; it starts falling from there. */
+    spawnAt(x: number, y: number): void {
+        this.add(this.spawner.createAt(x, y));
+    }
+
     remove(shape: ShapeModel): void {
         const index = this._shapes.indexOf(shape);
         if (index === -1) return;

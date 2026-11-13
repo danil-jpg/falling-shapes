@@ -5,7 +5,8 @@ import type {StageView} from '../view/StageView';
 
 /**
  * Game Loop: once per frame it steps the model, then copies the result to the view.
- * It also connects model events to the view, so neither knows about the other.
+ * It also connects model and view in both directions, so neither knows about the other:
+ * model events → view updates, and view input (taps) → model actions.
  */
 export class GameController {
     private readonly unsubscribers: Array<() => void>;
@@ -19,11 +20,15 @@ export class GameController {
             model.on('shapeAdded', (shape) => stageView.addShape(shape)),
             model.on('shapeRemoved', (shape) => stageView.removeShape(shape)),
         ];
+        stageView.onFieldTap((x, y) => model.spawnAt(x, y));
+        stageView.onShapeTap((shape) => model.remove(shape));
         ticker.add(this.update);
     }
 
     destroy(): void {
         this.ticker.remove(this.update);
+        this.stageView.onFieldTap(null);
+        this.stageView.onShapeTap(null);
         for (const unsubscribe of this.unsubscribers) unsubscribe();
         this.unsubscribers.length = 0;
     }

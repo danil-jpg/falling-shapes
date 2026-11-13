@@ -1,7 +1,8 @@
 import { Container, Graphics, Rectangle, type FederatedPointerEvent } from 'pixi.js';
 import { BORDER_COLOR, BORDER_WIDTH, FIELD_FILL, FIELD_INSET } from '../config/visual';
+import { Pool } from '../core/Pool';
 import type { ShapeModel } from '../model/entities/ShapeModel';
-import { ShapeView } from './ShapeView';
+import { ShapeView, type ShapeTapHandler } from './ShapeView';
 
 export type FieldTapHandler = (x: number, y: number) => void;
 
@@ -28,10 +29,16 @@ export class StageView extends Container {
   private readonly border = new Graphics();
   private readonly hitRect = new Rectangle();
   private readonly shapeViews = new Map<ShapeModel, ShapeView>();
+  /** Reuses ShapeViews so spawning doesn't allocate a new Graphics (GPU buffers) every time. */
+  private readonly viewPool = new Pool<ShapeView>(
+    () => new ShapeView(this.handleShapeTap),
+    (view) => view.unbind(),
+  );
 
   private fieldWidth = 0;
   private fieldHeight = 0;
   private tapHandler: FieldTapHandler | null = null;
+  private shapeTapHandler: ShapeTapHandler | null = null;
 
   constructor() {
     super();
@@ -43,7 +50,7 @@ export class StageView extends Container {
 
     // Mask must be in the display list so it follows the field transform.
     this.shapeLayer.mask = this.clipMask;
-    // Shapes are not interactive yet; avoid hit-testing their subtree until they are.
+    // The layer itself ignores input; its shape children are hit-tested individually.
     this.shapeLayer.eventMode = 'passive';
     this.border.eventMode = 'none';
     this.clipMask.eventMode = 'none';
@@ -60,6 +67,11 @@ export class StageView extends Container {
   /** Register the controller callback for taps on empty field space. */
   onFieldTap(handler: FieldTapHandler | null): void {
     this.tapHandler = handler;
+  }
+
+  /** Register the controller callback for taps on a shape. */
+  onShapeTap(handler: ShapeTapHandler | null): void {
+    this.shapeTapHandler = handler;
   }
 
   /**
@@ -89,8 +101,9 @@ export class StageView extends Container {
   }
 
   addShape(model: ShapeModel): void {
-    const view = new ShapeView();
+    const view = this.viewPool.acquire();
     view.bind(model);
+    // addChild puts it on top, so newer shapes draw over older ones.
     this.shapeLayer.addChild(view.graphics);
     this.shapeViews.set(model, view);
   }
@@ -100,7 +113,12 @@ export class StageView extends Container {
     if (!view) return;
     this.shapeViews.delete(model);
     this.shapeLayer.removeChild(view.graphics);
-    view.destroy();
+    this.viewPool.release(view);
+  }
+
+  /** Debug/profiling info: how many views exist in total, and how many are waiting for reuse. */
+  get poolStats(): Readonly<{ created: number; free: number; active: number }> {
+    return { created: this.viewPool.createdCount, free: this.viewPool.freeCount, active: this.shapeViews.size };
   }
 
   /** Copy model positions to their display objects. Called once per frame. */
@@ -113,12 +131,18 @@ export class StageView extends Container {
   override destroy(): void {
     this.background.off('pointerdown', this.handleBackgroundPointerDown);
     this.tapHandler = null;
+    this.shapeTapHandler = null;
     for (const view of this.shapeViews.values()) {
       view.destroy();
     }
     this.shapeViews.clear();
+    this.viewPool.clear((view) => view.destroy());
     super.destroy({ children: true });
   }
+
+  private readonly handleShapeTap = (model: ShapeModel): void => {
+    this.shapeTapHandler?.(model);
+  };
 
   private readonly handleBackgroundPointerDown = (e: FederatedPointerEvent): void => {
     if (!this.tapHandler) return;
