@@ -1,5 +1,5 @@
-import type {ShapeGeometry} from '../geometry/base/ShapeGeometry';
-
+import type {ShapeGeometry} from '../../geometry/base/ShapeGeometry';
+// todo check later,maybe move this as abstract class somewhere
 /**
  * One falling shape: position, velocity, colour, plus a geometry (Strategy).
  * Pure data and physics; knows nothing about PIXI display objects.

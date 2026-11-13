@@ -1,5 +1,5 @@
 import {Graphics} from 'pixi.js';
-import type {ShapeModel} from '../model/ShapeModel';
+import type {ShapeModel} from '../model/entities/ShapeModel';
 
 /**
  * Display object for one ShapeModel. Draws the geometry once when bound,

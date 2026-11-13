@@ -1,9 +1,9 @@
 import { Application } from 'pixi.js';
 import { DEFAULT_GRAVITY, DEFAULT_SPAWN_RATE } from './config/game';
 import { GameController } from './controller/GameController';
-import { SpawnController } from './controller/SpawnController';
 import { ShapeFactory } from './factory/ShapeFactory';
-import { GameModel } from './model/GameModel';
+import { GameModel } from './model/entities/GameModel';
+import { ShapeSpawner } from './model/rules/ShapeSpawner';
 import { StageView } from './view/StageView';
 
 /** Cap device pixel ratio: 3x phones gain little visually but pay 2.25x fill-rate vs 2x. */
@@ -37,12 +37,12 @@ export class Game {
     });
     host.appendChild(app.canvas);
 
-    const model = new GameModel(DEFAULT_GRAVITY, DEFAULT_SPAWN_RATE);
+    const spawner = new ShapeSpawner(new ShapeFactory());
+    const model = new GameModel(spawner, DEFAULT_GRAVITY, DEFAULT_SPAWN_RATE);
     const stageView = new StageView();
     app.stage.addChild(stageView);
 
-    const spawner = new SpawnController(model, new ShapeFactory());
-    const controller = new GameController(app.ticker, model, stageView, spawner);
+    const controller = new GameController(app.ticker, model, stageView);
 
     return new Game(app, model, stageView, controller);
   }
@@ -51,7 +51,7 @@ export class Game {
   destroy(): void {
     this.app.renderer.off('resize', this.handleResize);
     this.controller.destroy();
-    this.model.removeAllListeners();
+    this.model.destroy();
     this.stageView.destroy();
     this.app.destroy({ removeView: true }, { children: true });
   }

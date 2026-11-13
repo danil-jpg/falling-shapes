@@ -1,7 +1,7 @@
 import {SHAPE_RADIUS} from '../config/geometry';
 import {DEFAULT_SHAPE_COLOR} from '../config/visual';
 import {RegularPolygonGeometry} from '../geometry/shapes/RegularPolygonGeometry';
-import {ShapeModel} from '../model/ShapeModel';
+import {ShapeModel} from '../model/entities/ShapeModel';
 
 /**
  * Factory: the one place that decides a new shape's type and colour.

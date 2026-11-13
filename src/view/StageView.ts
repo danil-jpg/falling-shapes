@@ -1,6 +1,6 @@
 import { Container, Graphics, Rectangle, type FederatedPointerEvent } from 'pixi.js';
 import { BORDER_COLOR, BORDER_WIDTH, FIELD_FILL, FIELD_INSET } from '../config/visual';
-import type { ShapeModel } from '../model/ShapeModel';
+import type { ShapeModel } from '../model/entities/ShapeModel';
 import { ShapeView } from './ShapeView';
 
 export type FieldTapHandler = (x: number, y: number) => void;

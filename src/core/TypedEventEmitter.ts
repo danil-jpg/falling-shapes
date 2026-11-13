@@ -1,32 +1,30 @@
-type Listener<T> = (payload: T) => void;
+export type Listener<T> = (data: T) => void;
 
 /**
- * Observer: a minimal emitter where the event map fixes each event's payload type.
- * `on()` returns an unsubscribe function, so subscribers can clean up in `destroy()`.
+ * Observer: a small event emitter.
+ *
+ * `Events` maps each event name to the data it carries, e.g.
+ * `{shapeAdded: ShapeModel}`. TypeScript then checks names and data
+ * in `on`/`emit` calls.
  */
-export class TypedEventEmitter<Events extends object> {
-    private readonly listeners = new Map<keyof Events, Set<Listener<never>>>();
+export class TypedEventEmitter<Events> {
+    private readonly listeners = new Map<keyof Events, Set<Listener<any>>>();
 
+    /** Subscribe. Returns a function that unsubscribes. */
     on<K extends keyof Events>(event: K, listener: Listener<Events[K]>): () => void {
-        let set = this.listeners.get(event);
-        if (!set) {
-            set = new Set();
-            this.listeners.set(event, set);
+        if (!this.listeners.has(event)) {
+            this.listeners.set(event, new Set());
         }
-        set.add(listener as Listener<never>);
+        this.listeners.get(event)!.add(listener);
         return () => this.off(event, listener);
     }
 
     off<K extends keyof Events>(event: K, listener: Listener<Events[K]>): void {
-        this.listeners.get(event)?.delete(listener as Listener<never>);
+        this.listeners.get(event)?.delete(listener);
     }
 
-    protected emit<K extends keyof Events>(event: K, payload: Events[K]): void {
-        const set = this.listeners.get(event);
-        if (!set) return;
-        for (const listener of set) {
-            (listener as Listener<Events[K]>)(payload);
-        }
+    emit<K extends keyof Events>(event: K, data: Events[K]): void {
+        this.listeners.get(event)?.forEach((listener) => listener(data));
     }
 
     removeAllListeners(): void {

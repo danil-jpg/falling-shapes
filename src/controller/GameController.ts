@@ -1,11 +1,10 @@
 import type {Ticker} from 'pixi.js';
 import {MAX_FRAME_DT} from '../config/game';
-import type {GameModel} from '../model/GameModel';
+import type {GameModel} from '../model/entities/GameModel';
 import type {StageView} from '../view/StageView';
-import type {SpawnController} from './SpawnController';
 
 /**
- * Game Loop: once per frame it runs the spawner, then the model, then copies the result to the view.
+ * Game Loop: once per frame it steps the model, then copies the result to the view.
  * It also connects model events to the view, so neither knows about the other.
  */
 export class GameController {
@@ -15,7 +14,6 @@ export class GameController {
         private readonly ticker: Ticker,
         private readonly model: GameModel,
         private readonly stageView: StageView,
-        private readonly spawner: SpawnController,
     ) {
         this.unsubscribers = [
             model.on('shapeAdded', (shape) => stageView.addShape(shape)),
@@ -32,7 +30,6 @@ export class GameController {
 
     private readonly update = (ticker: Ticker): void => {
         const dt = Math.min(ticker.deltaMS / 1000, MAX_FRAME_DT);
-        this.spawner.update(dt);
         this.model.update(dt);
         this.stageView.syncShapes();
     };

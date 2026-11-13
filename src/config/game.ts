@@ -1,3 +1,5 @@
+// todo rename configs
+
 /** Gameplay tuning values. */
 
 /** Starting gravity, in px/s². */
