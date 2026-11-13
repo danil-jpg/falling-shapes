@@ -9,8 +9,17 @@
   <body>
     <main class="app">
       <section class="field-wrap">
-        <!-- Step 5: HTML HUD (shape count, occupied area) is rendered here -->
-        <div id="hud" class="hud" aria-live="polite"></div>
+        <!-- HTML HUD: shape count and occupied area (values updated by HudView) -->
+        <div id="hud" class="hud">
+          <div class="hud__item">
+            <span class="hud__label">Shapes</span>
+            <span class="hud__value" data-hud="count">0</span>
+          </div>
+          <div class="hud__item">
+            <span class="hud__label">Area</span>
+            <span class="hud__value" data-hud="area">0 px²</span>
+          </div>
+        </div>
         <!-- PIXI canvas host -->
         <div id="stage" class="stage"></div>
       </section>

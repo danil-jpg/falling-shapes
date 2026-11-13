@@ -1,6 +1,7 @@
 import type {Ticker} from 'pixi.js';
 import {MAX_FRAME_DT} from '../config/game';
 import type {GameModel} from '../model/entities/GameModel';
+import type {HudView} from '../view/HudView';
 import type {StageView} from '../view/StageView';
 
 /**
@@ -15,11 +16,14 @@ export class GameController {
         private readonly ticker: Ticker,
         private readonly model: GameModel,
         private readonly stageView: StageView,
+        hudView: HudView,
     ) {
         this.unsubscribers = [
             model.on('shapeAdded', (shape) => stageView.addShape(shape)),
             model.on('shapeRemoved', (shape) => stageView.removeShape(shape)),
+            model.on('statsChanged', (stats) => hudView.render(stats)),
         ];
+        hudView.render(model.stats);
         stageView.onFieldTap((x, y) => model.spawnAt(x, y));
         stageView.onShapeTap((shape) => model.remove(shape));
         ticker.add(this.update);

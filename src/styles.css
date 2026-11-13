@@ -56,10 +56,39 @@ body {
 
 .hud {
   position: absolute;
-  top: var(--field-inset);
-  left: var(--field-inset);
+  top: calc(var(--field-inset) + 8px);
+  left: calc(var(--field-inset) + 8px);
   z-index: 1;
+  display: flex;
+  gap: 6px;
   pointer-events: none; /* never steal taps from the canvas */
+}
+
+
+.hud__item {
+  display: flex;
+  flex-direction: column;
+  min-width: 84px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  /* Translucent so shapes stay visible underneath. */
+  background: rgb(20 22 28 / 0.78);
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.hud__label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hud__value {
+  font-size: 16px;
+  font-weight: 600;
+  /* Equal-width digits so the boxes don't jitter as numbers change. */
+  font-variant-numeric: tabular-nums;
 }
 
 .controls {

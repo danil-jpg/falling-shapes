@@ -1,10 +1,16 @@
 import './styles.css';
 import { Game } from './Game';
 
-const host = document.getElementById('stage');
-if (!host) throw new Error('#stage element not found');
+function requireElement(id: string): HTMLElement {
+  const el = document.getElementById(id);
+  if (!el) throw new Error(`#${id} element not found`);
+  return el;
+}
 
-const game = await Game.create(host);
+const game = await Game.create({
+  stage: requireElement('stage'),
+  hud: requireElement('hud'),
+});
 
 if (import.meta.hot) {
   // Dev only: dispose the old instance on hot reload so canvases/listeners don't stack up.

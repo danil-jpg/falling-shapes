@@ -2,9 +2,18 @@ import {TypedEventEmitter, type Listener} from '../../core/TypedEventEmitter';
 import type {ShapeModel} from './ShapeModel';
 import type {ShapeSpawner} from '../rules/ShapeSpawner';
 
+/** What the HUD shows: shapes overlapping the field, and the sum of their areas. */
+export interface FieldStats {
+    count: number;
+    /** Total area in px², rounded to a whole number. */
+    area: number;
+}
+
 export interface GameModelEvents {
     shapeAdded: ShapeModel;
     shapeRemoved: ShapeModel;
+    /** Emitted only when the count or the rounded area actually changes. */
+    statsChanged: FieldStats;
 }
 
 /**
@@ -20,6 +29,7 @@ export class GameModel {
     private readonly _shapes: ShapeModel[] = [];
     private _width = 0;
     private _height = 0;
+    private _stats: FieldStats = {count: 0, area: 0};
 
     constructor(
         private readonly spawner: ShapeSpawner,
@@ -42,6 +52,10 @@ export class GameModel {
 
     get shapes(): readonly ShapeModel[] {
         return this._shapes;
+    }
+
+    get stats(): Readonly<FieldStats> {
+        return this._stats;
     }
 
     get width(): number {
@@ -76,7 +90,10 @@ export class GameModel {
         this.removeAt(index);
     }
 
-    /** Spawn due shapes, move every shape, and drop the ones that have fully left the bottom. */
+    /**
+     * Spawn due shapes, move every shape, drop the ones that have fully left the bottom,
+     * then refresh the stats.
+     */
     update(dt: number): void {
         this.spawner.update(dt, this.spawnRate, this._width, this.addShape);
 
@@ -88,6 +105,30 @@ export class GameModel {
                 this.removeAt(i);
             }
         }
+
+        this.updateStats();
+    }
+
+    /**
+     * Counts shapes whose bounds overlap the field, including ones only partly inside
+     * (shapes still waiting above the top edge don't count), and sums their cached areas.
+     * Overlaps between shapes are not merged; each shape counts its full area.
+     * Emits only on change, so listeners (DOM) aren't touched every frame.
+     */
+    private updateStats(): void {
+        let count = 0;
+        let area = 0;
+        for (const shape of this._shapes) {
+            if (shape.intersectsField(this._width, this._height)) {
+                count++;
+                area += shape.geometry.area;
+            }
+        }
+        area = Math.round(area);
+
+        if (count === this._stats.count && area === this._stats.area) return;
+        this._stats = {count, area};
+        this.events.emit('statsChanged', this._stats);
     }
 
     /** O(1) removal: move the last element into the hole. Draw order is kept by the view, not this array. */
