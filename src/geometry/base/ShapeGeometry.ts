@@ -25,4 +25,10 @@ export interface ShapeGeometry {
   readonly hitArea: IHitArea;
   /** Draw into `g` centred on its origin. The caller clears `g` first. */
   draw(g: Graphics, color: number): void;
+  /**
+   * Cross-section: push [x0, x1, x2, x3, ...] pairs (local x) where the shape
+   * covers the horizontal line at local `y`. Pushes nothing if the line misses.
+   * Used to measure the area covered by overlapping shapes.
+   */
+  spansAt(y: number, out: number[]): void;
 }

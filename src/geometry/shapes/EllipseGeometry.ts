@@ -19,4 +19,11 @@ export class EllipseGeometry implements ShapeGeometry {
     draw(g: Graphics, color: number): void {
         g.ellipse(0, 0, this.radiusX, this.radiusY).fill(color);
     }
+
+    spansAt(y: number, out: number[]): void {
+        if (Math.abs(y) >= this.radiusY) return;
+        const t = y / this.radiusY;
+        const half = this.radiusX * Math.sqrt(1 - t * t);
+        out.push(-half, half);
+    }
 }

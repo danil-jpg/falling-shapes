@@ -21,3 +21,9 @@ export const MAX_SPAWN_RATE = 20;
  * (e.g. returning to the tab), shapes move a little instead of teleporting.
  */
 export const MAX_FRAME_DT = 0.1;
+
+/**
+ * Row height in px used to measure the area covered by shapes.
+ * 1 px is accurate to about 0.1%; larger values are cheaper and less precise.
+ */
+export const AREA_SAMPLE_STEP = 1;

@@ -1,9 +1,10 @@
 import { Application } from 'pixi.js';
-import { DEFAULT_GRAVITY, DEFAULT_SPAWN_RATE } from './config/game';
+import { AREA_SAMPLE_STEP, DEFAULT_GRAVITY, DEFAULT_SPAWN_RATE } from './config/game';
 import { ControlsController } from './controller/ControlsController';
 import { GameController } from './controller/GameController';
 import { ShapeFactory } from './factory/ShapeFactory';
 import { GameModel } from './model/entities/GameModel';
+import { OccupiedAreaCalculator } from './model/rules/OccupiedAreaCalculator';
 import { ShapeSpawner } from './model/rules/ShapeSpawner';
 import { ControlsView } from './view/ControlsView';
 import { HudView } from './view/HudView';
@@ -54,7 +55,8 @@ export class Game {
     hosts.stage.appendChild(app.canvas);
 
     const spawner = new ShapeSpawner(new ShapeFactory());
-    const model = new GameModel(spawner, DEFAULT_GRAVITY, DEFAULT_SPAWN_RATE);
+    const areaCalculator = new OccupiedAreaCalculator(AREA_SAMPLE_STEP);
+    const model = new GameModel(spawner, areaCalculator, DEFAULT_GRAVITY, DEFAULT_SPAWN_RATE);
     const stageView = new StageView();
     app.stage.addChild(stageView);
 

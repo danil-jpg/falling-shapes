@@ -2,12 +2,16 @@ import {MAX_GRAVITY, MAX_SPAWN_RATE, MIN_GRAVITY, MIN_SPAWN_RATE} from '../../co
 import {clamp} from '../../core/math';
 import {TypedEventEmitter, type Listener} from '../../core/TypedEventEmitter';
 import type {ShapeModel} from './ShapeModel';
+import type {OccupiedAreaCalculator} from '../rules/OccupiedAreaCalculator';
 import type {ShapeSpawner} from '../rules/ShapeSpawner';
 
-/** What the HUD shows: shapes overlapping the field, and the sum of their areas. */
+/** What the HUD shows: shapes overlapping the field, and the area they cover. */
 export interface FieldStats {
     count: number;
-    /** Total area in px², rounded to a whole number. */
+    /**
+     * Field area covered by shapes in px², rounded to a whole number.
+     * Overlaps count once; parts outside the field don't count.
+     */
     area: number;
 }
 
@@ -39,6 +43,7 @@ export class GameModel {
 
     constructor(
         private readonly spawner: ShapeSpawner,
+        private readonly areaCalculator: OccupiedAreaCalculator,
         gravity: number,
         spawnRate: number,
     ) {
@@ -142,21 +147,17 @@ export class GameModel {
     }
 
     /**
-     * Counts shapes whose bounds overlap the field, including ones only partly inside
-     * (shapes still waiting above the top edge don't count), and sums their cached areas.
-     * Overlaps between shapes are not merged; each shape counts its full area.
+     * Count: shapes whose bounds overlap the field, including ones only partly inside
+     * (shapes still waiting above the top edge don't count).
+     * Area: the field surface they cover, with overlaps counted once (OccupiedAreaCalculator).
      * Emits only on change, so listeners (DOM) aren't touched every frame.
      */
     private updateStats(): void {
         let count = 0;
-        let area = 0;
         for (const shape of this._shapes) {
-            if (shape.intersectsField(this._width, this._height)) {
-                count++;
-                area += shape.geometry.area;
-            }
+            if (shape.intersectsField(this._width, this._height)) count++;
         }
-        area = Math.round(area);
+        const area = Math.round(this.areaCalculator.measure(this._shapes, this._width, this._height));
 
         if (count === this._stats.count && area === this._stats.area) return;
         this._stats = {count, area};

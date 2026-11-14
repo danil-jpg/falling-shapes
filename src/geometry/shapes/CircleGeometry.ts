@@ -16,4 +16,10 @@ export class CircleGeometry implements ShapeGeometry {
     draw(g: Graphics, color: number): void {
         g.circle(0, 0, this.radius).fill(color);
     }
+
+    spansAt(y: number, out: number[]): void {
+        if (Math.abs(y) >= this.radius) return;
+        const half = Math.sqrt(this.radius * this.radius - y * y);
+        out.push(-half, half);
+    }
 }
