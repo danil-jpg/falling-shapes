@@ -31,9 +31,9 @@ export class ShapeSpawner {
         }
     }
 
-    /** Shape centred on a given point (e.g. where the user tapped). */
+    /** Random irregular shape centred on a given point (where the user tapped, bonus 3a). */
     createAt(x: number, y: number): ShapeModel {
-        const shape = this.factory.createRandom();
+        const shape = this.factory.createIrregular();
         shape.x = x;
         shape.y = y;
         return shape;

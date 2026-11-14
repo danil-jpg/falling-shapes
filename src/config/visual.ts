@@ -7,5 +7,9 @@ export const FIELD_FILL = 0xf7f8fa;
 export const BORDER_COLOR = 0x1c1f26;
 export const BORDER_WIDTH = 2;
 
-/** Shape colour until random colours arrive (step 6). */
-export const DEFAULT_SHAPE_COLOR = 0xe74c3c;
+/**
+ * Random shape colours use a random hue with fixed saturation and lightness,
+ * so every colour is vivid and readable against the light field.
+ */
+export const SHAPE_SATURATION = 0.7;
+export const SHAPE_LIGHTNESS = 0.55;
