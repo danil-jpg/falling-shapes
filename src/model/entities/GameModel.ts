@@ -1,3 +1,5 @@
+import {MAX_GRAVITY, MAX_SPAWN_RATE, MIN_GRAVITY, MIN_SPAWN_RATE} from '../../config/game';
+import {clamp} from '../../core/math';
 import {TypedEventEmitter, type Listener} from '../../core/TypedEventEmitter';
 import type {ShapeModel} from './ShapeModel';
 import type {ShapeSpawner} from '../rules/ShapeSpawner';
@@ -14,6 +16,8 @@ export interface GameModelEvents {
     shapeRemoved: ShapeModel;
     /** Emitted only when the count or the rounded area actually changes. */
     statsChanged: FieldStats;
+    gravityChanged: number;
+    spawnRateChanged: number;
 }
 
 /**
@@ -30,14 +34,42 @@ export class GameModel {
     private _width = 0;
     private _height = 0;
     private _stats: FieldStats = {count: 0, area: 0};
+    private _gravity: number;
+    private _spawnRate: number;
 
     constructor(
         private readonly spawner: ShapeSpawner,
-        /** Acceleration in px/s². */
-        public gravity: number,
-        /** Shapes spawned per second. */
-        public spawnRate: number,
+        gravity: number,
+        spawnRate: number,
     ) {
+        this._gravity = clamp(gravity, MIN_GRAVITY, MAX_GRAVITY);
+        this._spawnRate = clamp(spawnRate, MIN_SPAWN_RATE, MAX_SPAWN_RATE);
+    }
+
+    /** Acceleration in px/s². */
+    get gravity(): number {
+        return this._gravity;
+    }
+
+    /** Shapes spawned per second. */
+    get spawnRate(): number {
+        return this._spawnRate;
+    }
+
+    /** Set gravity, clamped to [MIN_GRAVITY, MAX_GRAVITY]. Emits only if the value changes. */
+    setGravity(value: number): void {
+        const next = clamp(value, MIN_GRAVITY, MAX_GRAVITY);
+        if (next === this._gravity) return;
+        this._gravity = next;
+        this.events.emit('gravityChanged', next);
+    }
+
+    /** Set spawn rate, clamped to [MIN_SPAWN_RATE, MAX_SPAWN_RATE]. Emits only if the value changes. */
+    setSpawnRate(value: number): void {
+        const next = clamp(value, MIN_SPAWN_RATE, MAX_SPAWN_RATE);
+        if (next === this._spawnRate) return;
+        this._spawnRate = next;
+        this.events.emit('spawnRateChanged', next);
     }
 
     /** Subscribe to a model event. Returns a function that unsubscribes. */
@@ -95,12 +127,12 @@ export class GameModel {
      * then refresh the stats.
      */
     update(dt: number): void {
-        this.spawner.update(dt, this.spawnRate, this._width, this.addShape);
+        this.spawner.update(dt, this._spawnRate, this._width, this.addShape);
 
         // Walk backwards so swap-removal never skips an element.
         for (let i = this._shapes.length - 1; i >= 0; i--) {
             const shape = this._shapes[i];
-            shape.update(dt, this.gravity);
+            shape.update(dt, this._gravity);
             if (shape.top > this._height) {
                 this.removeAt(i);
             }

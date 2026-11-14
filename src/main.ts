@@ -10,6 +10,7 @@ function requireElement(id: string): HTMLElement {
 const game = await Game.create({
   stage: requireElement('stage'),
   hud: requireElement('hud'),
+  controls: requireElement('controls'),
 });
 
 if (import.meta.hot) {

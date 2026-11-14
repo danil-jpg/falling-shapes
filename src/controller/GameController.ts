@@ -1,6 +1,7 @@
 import type {Ticker} from 'pixi.js';
 import {MAX_FRAME_DT} from '../config/game';
-import type {GameModel} from '../model/entities/GameModel';
+import type {FieldStats, GameModel} from '../model/entities/GameModel';
+import type {ShapeModel} from '../model/entities/ShapeModel';
 import type {HudView} from '../view/HudView';
 import type {StageView} from '../view/StageView';
 
@@ -16,12 +17,12 @@ export class GameController {
         private readonly ticker: Ticker,
         private readonly model: GameModel,
         private readonly stageView: StageView,
-        hudView: HudView,
+        private readonly hudView: HudView,
     ) {
         this.unsubscribers = [
-            model.on('shapeAdded', (shape) => stageView.addShape(shape)),
-            model.on('shapeRemoved', (shape) => stageView.removeShape(shape)),
-            model.on('statsChanged', (stats) => hudView.render(stats)),
+            model.on('shapeAdded', this.handleShapeAdded),
+            model.on('shapeRemoved', this.handleShapeRemoved),
+            model.on('statsChanged', this.handleStatsChanged),
         ];
         hudView.render(model.stats);
         stageView.onFieldTap((x, y) => model.spawnAt(x, y));
@@ -36,6 +37,19 @@ export class GameController {
         for (const unsubscribe of this.unsubscribers) unsubscribe();
         this.unsubscribers.length = 0;
     }
+
+    // Arrow-function fields keep `this` bound, so they can be passed to model.on() directly.
+    private readonly handleShapeAdded = (shape: ShapeModel): void => {
+        this.stageView.addShape(shape);
+    };
+
+    private readonly handleShapeRemoved = (shape: ShapeModel): void => {
+        this.stageView.removeShape(shape);
+    };
+
+    private readonly handleStatsChanged = (stats: FieldStats): void => {
+        this.hudView.render(stats);
+    };
 
     private readonly update = (ticker: Ticker): void => {
         const dt = Math.min(ticker.deltaMS / 1000, MAX_FRAME_DT);

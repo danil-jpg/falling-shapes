@@ -23,8 +23,25 @@
         <!-- PIXI canvas host -->
         <div id="stage" class="stage"></div>
       </section>
-      <!-- Step 7: +/- controls for spawn rate and gravity -->
-      <footer id="controls" class="controls"></footer>
+      <!-- HTML +/- controls (values and button states updated by ControlsView) -->
+      <footer id="controls" class="controls">
+        <div class="control" data-control="spawnRate">
+          <div class="control__row">
+            <button type="button" class="control__btn" data-step="-1" aria-label="Fewer shapes per second">−</button>
+            <output class="control__value" data-value aria-live="polite">1 /s</output>
+            <button type="button" class="control__btn" data-step="1" aria-label="More shapes per second">+</button>
+          </div>
+          <span class="control__label">Shapes per second</span>
+        </div>
+        <div class="control" data-control="gravity">
+          <div class="control__row">
+            <button type="button" class="control__btn" data-step="-1" aria-label="Decrease gravity">−</button>
+            <output class="control__value" data-value aria-live="polite">300</output>
+            <button type="button" class="control__btn" data-step="1" aria-label="Increase gravity">+</button>
+          </div>
+          <span class="control__label">Gravity, px/s²</span>
+        </div>
+      </footer>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

@@ -93,5 +93,95 @@ body {
 
 .controls {
   flex: 0 0 auto;
-  min-height: 72px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 32px;
+  padding: 4px var(--field-inset) 16px;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.control__row {
+  display: flex;
+  align-items: stretch;
+  border: 2px solid var(--text);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.control__btn {
+  /* 44px: minimum comfortable touch target. */
+  width: 48px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  /* Fast repeated taps shouldn't trigger double-tap zoom. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.control__btn:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.control__btn:active:not(:disabled) {
+  background: rgb(255 255 255 / 0.16);
+}
+
+.control__btn:focus-visible {
+  outline: 2px solid #5b9dff;
+  outline-offset: -4px;
+}
+
+.control__btn:disabled {
+  color: var(--muted);
+  opacity: 0.4;
+  cursor: default;
+}
+
+.control__value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 0 8px;
+  border-inline: 2px solid var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.control__label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Narrow phones: keep both controls on one row so the field keeps its height. */
+@media (max-width: 420px) {
+  .controls {
+    gap: 12px 16px;
+  }
+
+  .control__btn {
+    width: 44px;
+  }
+
+  .control__value {
+    min-width: 60px;
+  }
 }

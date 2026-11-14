@@ -1,9 +1,11 @@
 import { Application } from 'pixi.js';
 import { DEFAULT_GRAVITY, DEFAULT_SPAWN_RATE } from './config/game';
+import { ControlsController } from './controller/ControlsController';
 import { GameController } from './controller/GameController';
 import { ShapeFactory } from './factory/ShapeFactory';
 import { GameModel } from './model/entities/GameModel';
 import { ShapeSpawner } from './model/rules/ShapeSpawner';
+import { ControlsView } from './view/ControlsView';
 import { HudView } from './view/HudView';
 import { StageView } from './view/StageView';
 
@@ -13,6 +15,8 @@ export interface GameHosts {
   stage: HTMLElement;
   /** Element the HTML counters are rendered into. */
   hud: HTMLElement;
+  /** Element holding the +/- controls. */
+  controls: HTMLElement;
 }
 
 /** Cap device pixel ratio: 3x phones gain little visually but pay 2.25x fill-rate vs 2x. */
@@ -29,7 +33,9 @@ export class Game {
     private readonly model: GameModel,
     private readonly stageView: StageView,
     private readonly hudView: HudView,
+    private readonly controlsView: ControlsView,
     private readonly controller: GameController,
+    private readonly controlsController: ControlsController,
   ) {
     app.renderer.on('resize', this.handleResize);
     this.handleResize(app.screen.width, app.screen.height);
@@ -53,19 +59,23 @@ export class Game {
     app.stage.addChild(stageView);
 
     const hudView = new HudView(hosts.hud);
+    const controlsView = new ControlsView(hosts.controls);
 
     const controller = new GameController(app.ticker, model, stageView, hudView);
+    const controlsController = new ControlsController(model, controlsView);
 
-    return new Game(app, model, stageView, hudView, controller);
+    return new Game(app, model, stageView, hudView, controlsView, controller, controlsController);
   }
 
   // destroy - for dev reason,to avoid hot reload vite bug
   destroy(): void {
     this.app.renderer.off('resize', this.handleResize);
     this.controller.destroy();
+    this.controlsController.destroy();
     this.model.destroy();
     this.stageView.destroy();
     this.hudView.destroy();
+    this.controlsView.destroy();
     this.app.destroy({ removeView: true }, { children: true });
   }
 
