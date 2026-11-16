@@ -1,4 +1,3 @@
-import './styles.css';
 import { Game } from './Game';
 
 function requireElement(id: string): HTMLElement {
