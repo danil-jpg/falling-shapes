@@ -77,8 +77,13 @@ The model and the views never reference each other. The controllers are the only
 - **What counts as "displayed":** a shape whose bounds overlap the field, including shapes only partly inside.
 - **Area:** the field surface actually covered by shapes. Where shapes overlap, the shared region counts once, and parts outside the field don't count.
   - It's measured with a scan line (`OccupiedAreaCalculator`). The field is sampled in 1 px rows. On each row every shape reports the x-intervals it covers (`ShapeGeometry.spansAt`: exact for circles and ellipses, edge crossings for polygons, which handles concave stars). The intervals are clipped to the field and merged, and their length is added up.
-  - Accuracy is about 0.1%: polygons are exact and curved shapes are slightly over. It needs no polygon-clipping library and no pixel buffer, and it allocates nothing per frame.
-  - It costs about one interval merge per pixel row that contains shapes: roughly 0.85 ms per frame with 30 shapes on a 900×700 field (desktop), and much less at the default 1 shape/s. Raise `AREA_SAMPLE_STEP` to trade precision for speed.
+  - Accuracy is about 0.1%. Each row is sampled at its midpoint, which is exact only where the covered width changes linearly within that row. Small errors appear on rows with polygon corners or star tips, curved edges, the field edges, or where two shapes start or stop overlapping. It needs no polygon-clipping library and no pixel buffer, and it allocates nothing per frame.
+  - **Cost control:**
+    - Only shapes overlapping the field are considered.
+    - Each row looks only at the shapes crossing it, and rows with no shapes are skipped.
+    - The stats are recomputed every `STATS_INTERVAL` (0.1 s), not every frame. A shape crossing an edge changes the area constantly, so without this the measurement and the DOM write would run on every frame.
+    - A tap refreshes the stats at once.
+    - Raise `AREA_SAMPLE_STEP` to trade precision for speed.
 - **Gravity:** a real acceleration (px/s²), so shapes speed up as they fall. The minimum is above 0, because with zero gravity shapes spawned above the field would never fall in and would pile up forever.
 - **Spawn rate:** can go down to 0, which pauses automatic spawning. Taps still work.
 - **Irregular polygons:** random sorted angles with random radii. Walking around the centre in angle order means edges never cross, so the shoelace area stays exact.

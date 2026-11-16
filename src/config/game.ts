@@ -27,3 +27,11 @@ export const MAX_FRAME_DT = 0.1;
  * 1 px is accurate to about 0.1%; larger values are cheaper and less precise.
  */
 export const AREA_SAMPLE_STEP = 1;
+
+/**
+ * How often the HUD stats (count, area) are recomputed, in seconds.
+ * The area of a shape crossing an edge changes every frame, so without this
+ * the measurement and the DOM write would run on every frame.
+ * 0.1 s (10×/s) still looks live to the eye.
+ */
+export const STATS_INTERVAL = 0.1;

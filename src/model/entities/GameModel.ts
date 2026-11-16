@@ -1,4 +1,4 @@
-import {MAX_GRAVITY, MAX_SPAWN_RATE, MIN_GRAVITY, MIN_SPAWN_RATE} from '../../config/game';
+import {MAX_GRAVITY, MAX_SPAWN_RATE, MIN_GRAVITY, MIN_SPAWN_RATE, STATS_INTERVAL} from '../../config/game';
 import {clamp} from '../../core/math';
 import {TypedEventEmitter, type Listener} from '../../core/TypedEventEmitter';
 import type {ShapeModel} from './ShapeModel';
@@ -38,6 +38,8 @@ export class GameModel {
     private _width = 0;
     private _height = 0;
     private _stats: FieldStats = {count: 0, area: 0};
+    /** Seconds since the stats were last recomputed. */
+    private statsElapsed = 0;
     private _gravity: number;
     private _spawnRate: number;
 
@@ -119,17 +121,20 @@ export class GameModel {
     /** Spawn a new shape centred at (x, y) in field coordinates; it starts falling from there. */
     spawnAt(x: number, y: number): void {
         this.add(this.spawner.createAt(x, y));
+        // A tap should show in the HUD at once, not up to STATS_INTERVAL later.
+        this.refreshStats();
     }
 
     remove(shape: ShapeModel): void {
         const index = this._shapes.indexOf(shape);
         if (index === -1) return;
         this.removeAt(index);
+        this.refreshStats();
     }
 
     /**
-     * Spawn due shapes, move every shape, drop the ones that have fully left the bottom,
-     * then refresh the stats.
+     * Spawn due shapes, move every shape, drop the ones that have fully left the bottom.
+     * Stats are refreshed every STATS_INTERVAL seconds, not every frame.
      */
     update(dt: number): void {
         this.spawner.update(dt, this._spawnRate, this._width, this.addShape);
@@ -143,16 +148,21 @@ export class GameModel {
             }
         }
 
-        this.updateStats();
+        this.statsElapsed += dt;
+        if (this.statsElapsed >= STATS_INTERVAL) {
+            this.refreshStats();
+        }
     }
 
     /**
      * Count: shapes whose bounds overlap the field, including ones only partly inside
      * (shapes still waiting above the top edge don't count).
      * Area: the field surface they cover, with overlaps counted once (OccupiedAreaCalculator).
-     * Emits only on change, so listeners (DOM) aren't touched every frame.
+     * Called at most every STATS_INTERVAL from update(), plus right after a tap.
+     * Emits only on change.
      */
-    private updateStats(): void {
+    private refreshStats(): void {
+        this.statsElapsed = 0;
         let count = 0;
         for (const shape of this._shapes) {
             if (shape.intersectsField(this._width, this._height)) count++;
